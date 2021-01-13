@@ -8,9 +8,33 @@ const users = [
 ];
 
 const posts = [
-  { id: 1, title: 'Title1', body: 'Body1', published: false },
-  { id: 2, title: 'Title2', body: 'Body2', published: false },
-  { id: 3, title: 'Title3', body: 'Body3', published: false },
+  {
+    id: 1,
+    title: 'Title1',
+    body: 'Body1',
+    published: false,
+    author: 1,
+  },
+  {
+    id: 2,
+    title: 'Title2',
+    body: 'Body2',
+    published: false,
+    author: 1,
+  },
+  {
+    id: 3,
+    title: 'Title3',
+    body: 'Body3',
+    published: false,
+    author: 2,
+  },
+];
+
+const comments = [
+  { id: 1, text: 'Comment 1', author: 1 },
+  { id: 2, text: 'Comment 2', author: 1 },
+  { id: 3, text: 'Comment 3', author: 2 },
 ];
 
 // 5 Scaler Type
@@ -21,6 +45,7 @@ const typeDefs = `
   type Query {
     users(query: String): [User!]
     posts(title: String): [Post!]
+    comments: [Comment!]
     me: User!
     post: Post!
   }
@@ -29,7 +54,9 @@ const typeDefs = `
     id: ID!
     name: String!
     email: String!
-    age: Int
+    age: Int,
+    posts: [Post!]
+    comments: [Comment!]
   }
 
   type Post {
@@ -37,6 +64,15 @@ const typeDefs = `
     title: String!
     body: String!
     published: Boolean!
+    author: User!
+    comments: Comment!
+  }
+
+  type Comment {
+    id: ID!
+    text: String!
+    author: User!
+    post: Post!
   }
 
 `;
@@ -68,6 +104,32 @@ const resolvers = {
     posts(parent, args, ctx, info) {
       if (!args.title) return posts;
       return posts.filter((post) => post.title.toLowerCase().includes(args.title));
+    },
+    comments(parent, args, ctx, info) {
+      return comments;
+    },
+  },
+  Post: {
+    author(parent, args, ctx, info) {
+      return users.find((user) => user.id === parent.author);
+    },
+    comments(parent, args, ctx, info) {
+      return comments.filter((comment) => comment.post === parent.id);
+    },
+  },
+
+  User: {
+    posts(parent, args, ctx, info) {
+      return posts.filter((post) => post.author === parent.id);
+    },
+  },
+
+  Comment: {
+    author(parent, args, ctx, info) {
+      return users.find((user) => user.id === parent.author);
+    },
+    post(parent, args, ctx, info) {
+      return posts.find((post) => post.id === parent.id);
     },
   },
 };
