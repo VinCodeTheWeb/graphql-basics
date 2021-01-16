@@ -2,13 +2,13 @@ import { GraphQLServer } from 'graphql-yoga';
 import { v4 as uuidv4 } from 'uuid';
 
 // Demo Users Data
-const users = [
+let users = [
   { id: 1, name: 'Vincenzo', email: 'vincenzo33.pellegrini@gmail.com', age: 33 },
   { id: 2, name: 'Hassen', email: 'hassen33.pellegrini@gmail.com', age: 33 },
   { id: 3, name: 'Charazade', email: 'charazade.merabet@gmail.com', age: 55 },
 ];
 
-const posts = [
+let posts = [
   {
     id: 1,
     title: 'Title1',
@@ -32,7 +32,7 @@ const posts = [
   },
 ];
 
-const comments = [
+let comments = [
   { id: 1, text: 'Comment 1', author: 1 },
   { id: 2, text: 'Comment 2', author: 1 },
   { id: 3, text: 'Comment 3', author: 2 },
@@ -52,9 +52,30 @@ const typeDefs = `
   }
 
   type Mutation {
-    createUser(name: String!, email: String!, age: Int): User!
-    createPost(title: String!, body: String!, published: Boolean!, author: ID!): Post!
-    createComment(text: String!, author: ID!, post: ID!): Comment!
+    createUser(data: createUserInput): User!
+    createPost(data: createPostInput): Post!
+    createComment(data: createCommentInput): Comment!
+    deleteUser(id: ID!): User!
+    deletePost(id: ID!): Post!
+  }
+
+  input createUserInput {
+    name: String!,
+    email: String!,
+    age: Int
+  }
+
+  input createPostInput {
+    title: String!
+    body: String!
+    published: Boolean!
+    author: ID!
+  }
+
+  input createCommentInput {
+    text: String!
+    author: ID!
+    post: ID!
   }
 
   type User {
@@ -119,45 +140,73 @@ const resolvers = {
 
   Mutation: {
     createUser(parent, args, ctx, info) {
-      const emailTaken = users.some((user) => user.email === args.email);
+      const emailTaken = users.some((user) => user.email === args.data.email);
       if (emailTaken) throw new Error('Email Taken');
 
       const user = {
         id: uuidv4(),
-        name: args.name,
-        email: args.email,
-        age: args.age,
+        ...args.data,
       };
 
       users.push(user);
 
       return user;
     },
+    deleteUser(parent, args, ctx, info) {
+      const userIndex = users.findIndex((user) => user.id === args.id);
+      if (userIndex === -1) throw new Error('User not found');
+
+      const deletedUsers = users.splice(userIndex, 1);
+
+      posts = posts.filter((post) => {
+        const match = post.author === args.id;
+
+        if (match) {
+          comments = comments.filter((comment) => comment.post !== post.id);
+        }
+        return !match;
+      });
+
+      comment = comments.filter((comment) => comment.author !== args.id);
+
+      return deletedUsers;
+    },
     createPost(parent, args, ctx, info) {
-      const userExist = users.some((user) => user.id === args.author);
+      const userExist = users.some((user) => user.id === args.data.author);
       if (!userExist) throw new Error('User not found');
 
       const post = {
         id: uuidv4(),
-        title: args.title,
-        body: args.body,
-        published: args.published,
-        author: args.author,
+        ...args.data,
       };
 
       posts.push(post);
 
       return post;
     },
+    deletePost(parent, args, ctx, info) {
+      const postIndex = posts.findIndex((post) => post.id === args.id);
+      if (postIndex === -1) throw new Error('Post not found');
+
+      const deletedPost = posts.splice(postIndex, 1);
+
+      comments = comments.filter((comment) => {
+        const match = comment.id === args.id;
+
+        if (match) {
+          comments = comments.filter((comment) => comment.author !== post.author);
+        }
+        return !match;
+      });
+      return deletedPost;
+    },
     createComment(parent, args, ctx, info) {
-      const userExist = users.some((user) => user.id === args.author);
+      const userExist = users.some((user) => user.id === args.data.author);
       if (!userExist) throw new Error('User not found');
 
       const comment = {
         id: uuidv4(),
-        text: args.text,
-        author: args.author,
-        post: args.post,
+        ...args.data,
       };
 
       comments.push(comment);
