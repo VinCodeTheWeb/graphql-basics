@@ -17,9 +17,7 @@ const Query = {
   },
   users(parent, args, { db }, info) {
     if (!args.query) return db.users;
-    return db.users.filter((user) =>
-      user.name.toLowerCase().includes(args.query.toLowerCase())
-    );
+    return db.users.filter((user) => user.name.toLowerCase().includes(args.query));
   },
   posts(parent, args, { db }, info) {
     if (!args.title) return posts;
@@ -27,8 +25,8 @@ const Query = {
   },
   comments(parent, args, { db }, info) {
     if (!args.id) return db.comments;
-    return db.comments.filter((comment) => comment.author === parent.id)
+    return db.comments.filter((comment) => comment.author === parent.id);
   },
-},
+};
 
 export { Query as default };

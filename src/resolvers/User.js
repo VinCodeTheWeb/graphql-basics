@@ -3,8 +3,8 @@ const User = {
     return db.posts.filter((post) => post.author === parent.id);
   },
   comments(parent, args, { db }, info) {
-    return db.comments.filter((comment) => comment.author === parent.id)
-  }
-},
+    return db.comments.filter((comment) => comment.author === parent.id);
+  },
+};
 
-export { User as default }
+export { User as default };

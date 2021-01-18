@@ -4,7 +4,8 @@ import db from './db';
 import Query from './resolvers/Query';
 import Mutation from './resolvers/Mutations';
 import User from './resolvers/User';
-import Post from './resolvers/Comment';
+import Post from './resolvers/Post';
+import Comment from './resolvers/Comment';
 
 // Resolvers
 const resolvers = {

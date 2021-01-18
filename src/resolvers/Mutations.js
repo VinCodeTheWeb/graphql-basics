@@ -14,6 +14,28 @@ const Mutation = {
 
     return user;
   },
+  updateUser(parent, { data }, { db }, info) {
+    const existingUser = db.users.find((user) => user.id === parseInt(data.id));
+
+    if (!existingUser) throw new Error('User not found');
+
+    if (typeof data.email === 'string') {
+      const emailTaken = db.users.some((user) => user.email === data.email);
+
+      if (emailTaken) throw new Error('Email in used');
+      existingUser.email = data.email;
+    }
+
+    if (typeof data.name === 'string') {
+      existingUser.name = data.name;
+    }
+
+    if (data.age !== 'undefined') {
+      existingUser.age = data.age;
+    }
+
+    return existingUser;
+  },
   deleteUser(parent, args, { db }, info) {
     const userIndex = db.users.findIndex((user) => user.id === args.id);
     if (userIndex === -1) throw new Error('User not found');
@@ -46,6 +68,19 @@ const Mutation = {
 
     return post;
   },
+  updatePost(parent, { data }, { db }, info) {
+    const existingPost = db.posts.find((post) => {
+      return post.id === parseInt(data.id);
+    });
+
+    if (!existingPost) throw new Error('Post not found');
+
+    for (let d in existingPost) {
+      existingPost[d] = data[d] || existingPost[d];
+    }
+
+    return existingPost;
+  },
   deletePost(parent, args, { db }, info) {
     const postIndex = db.posts.findIndex((post) => post.id === args.id);
     if (postIndex === -1) throw new Error('Post not found');
@@ -74,6 +109,19 @@ const Mutation = {
     db.comments.push(comment);
 
     return comment;
+  },
+  updateComment(parent, { data }, { db }, info) {
+    const exisitingComment = db.comments.find(
+      (comment) => comment.id === parseInt(data.id)
+    );
+
+    if (!exisitingComment) throw new Error('Comment not found');
+
+    for (let d in exisitingComment) {
+      exisitingComment[d] = data[d] || exisitingComment[d];
+    }
+
+    return exisitingComment;
   },
 };
 
